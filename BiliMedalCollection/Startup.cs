@@ -37,7 +37,7 @@ namespace BiliMedalCollection
                 app.UseDeveloperExceptionPage();
             }
             dbEntitys.Database.EnsureCreated();
-            app.UseCors(builder => builder.WithOrigins("http://bilimedal.ijglb.com").AllowAnyMethod().AllowAnyHeader().AllowCredentials());
+            app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader().AllowCredentials());
             app.UseMvc();
             app.UseTimedJob();
         }
