@@ -1,29 +1,135 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<meta charset="utf-8" />
-		<title>哔哩哔哩直播间勋章查询</title>
-		<link rel="stylesheet" href="http://cdn.bootcss.com/mdui/0.4.0/css/mdui.min.css">
-		<script src="http://cdn.bootcss.com/mdui/0.4.0/js/mdui.min.js"></script>
-	</head>
-	<main class="mdui-container mdui-row">
-		<div class="mdui-col-md-6 mdui-col-offset-md-3">
-			<div class="mdui-card">
-  <div class="mdui-card-media">
-    <img src="http://img.ijglb.com/api.php"/>
-    <div class="mdui-card-media-covered">
-      <div class="mdui-card-primary">
-        <div class="mdui-card-primary-title">哔哩哔哩直播间勋章查询</div>
-        <div class="mdui-card-primary-subtitle">Subtitle</div>
-      </div>
-    </div>
-  </div>
-  <div class="mdui-card-actions">
-    <button class="mdui-btn mdui-ripple">action 1</button>
-    <button class="mdui-btn mdui-ripple">action 2</button>
-  </div>
-</div>
-		</div>
 
-	</main>
+<head>
+    <meta charset="utf-8" />
+    <title>哔哩哔哩直播间勋章查询</title>
+    <link rel="stylesheet" href="//cdn.bootcss.com/mdui/0.4.0/css/mdui.min.css">
+    <script src="//cdn.bootcss.com/mdui/0.4.0/js/mdui.min.js"></script>
+    <style type="text/css">
+        .mdui-card-media {
+            height: 300px;
+            background-repeat: repeat;
+            background-position: 50% 50%;
+            background-size: cover;
+            background-origin: padding-box;
+            background-attachment: scroll;
+        }
+    </style>
+</head>
+<main class="mdui-container">
+    <div class="mdui-card mdui-center" style="width: 65%;">
+        <div class="mdui-card-media" style="background-image: url('http://img.ijglb.com/api.php')">
+            <div class="mdui-card-media-covered mdui-card-media-covered-top">
+                <div class="mdui-card-primary mdui-text-center">
+                    <div class="mdui-card-primary-title">哔哩哔哩直播间勋章查询</div>
+                    <div id="count" class="mdui-card-primary-subtitle">Subtitle</div>
+                </div>
+            </div>
+        </div>
+        <div class="mdui-card-actions mdui-card-media-covered">
+            <form action="" method="post" id="search">
+                <input id="keyword" class="mdui-textfield-input mdui-text-color-white mdui-text-center" type="text" placeholder="勋章关键字，回车搜索"
+                />
+            </form>
+        </div>
+    </div>
+    <div id="panel" class="mdui-panel mdui-center" style="width: 65%;" mdui-panel='{accordion: true}'>
+        <div class="mdui-panel-item">
+            <div class="mdui-panel-item-header">最近更新</div>
+            <div id="last-update" class="mdui-panel-item-body"></div>
+        </div>
+        <div id="result" class="mdui-panel-item" style="display:none;">
+            <div id="result-title" class="mdui-panel-item-header">搜索结果</div>
+            <div id="result-content" class="mdui-panel-item-body"></div>
+        </div>
+    </div>
+    <footer class="mdui-text-center mdui-m-t-2">
+        Powered by
+        <a href="http://www.ijglb.com/" target="_blank">极光萝卜</a> Begin:2018/03/31
+    </footer>
+</main>
+<script type="text/javascript">
+    Date.prototype.Format = function (fmt) {
+        var o = {
+            "M+": this.getMonth() + 1, //月份 
+            "d+": this.getDate(), //日 
+            "h+": this.getHours(), //小时 
+            "m+": this.getMinutes(), //分 
+            "s+": this.getSeconds(), //秒 
+            "q+": Math.floor((this.getMonth() + 3) / 3), //季度 
+            "S": this.getMilliseconds() //毫秒 
+        };
+        if (/(y+)/.test(fmt)) {
+            fmt = fmt.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
+        }
+        for (var k in o)
+            if (new RegExp("(" + k + ")").test(fmt))
+                fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+        return fmt;
+
+    }
+
+    function isNull(str) {
+        if (str == "") return true;
+        var regu = "^[ ]+$";
+        var re = new RegExp(regu);
+        return re.test(str);
+    }
+    var $$ = mdui.JQ;
+    $$(function () {
+        $$('#search').on('submit', function (e) {
+            e.preventDefault();
+            var key = $$('#keyword').val();
+            if (isNull(key)) {
+                $$('#result').hide();
+            } else {
+                $$.ajax({
+                    method: 'GET',
+                    url: 'http://bilimedal.ijglb.com/Search',
+                    data: {
+                        keyword: key
+                    },
+                    success: function (data) {
+                        data = JSON.parse(data);
+                        $$('#result-title').html(key + ' 搜索结果');
+                        $$('#result-content').html('');
+                        $$.each(data, function (i, value) {
+                            $$('#result-content').append(
+                                '<a href="http://live.bilibili.com/' + value.roomID +
+                                '" target="_blank" class="mdui-chip"><span class="mdui-chip-title">' +
+                                value.medalName + '</span></a>');
+                        })
+                        $$('#result').show();
+                        var panel = new mdui.Panel('#panel');
+                        panel.open('#result');
+                    }
+                });
+            }
+            return false; // 阻止表单自动提交事件
+        });
+        $$.ajax({
+            method: 'GET',
+            url: 'http://bilimedal.ijglb.com/Count',
+            success: function (data) {
+                data = JSON.parse(data);
+                $$('#count').html('当前共收集' + data.count + '个勋章');
+            }
+        });
+        $$.ajax({
+            method: 'GET',
+            url: 'http://bilimedal.ijglb.com/GetUpdateInfo',
+            success: function (data) {
+                $$('#last-update').html('');
+                data = JSON.parse(data);
+                $$.each(data, function (i, value) {
+                    $$('#last-update').append('<p>' + new Date(value.lastUpdateTime).Format(
+                            "yyyy-MM-dd hh:mm:ss") + '\t' + value.medalName + '\t(' +
+                        value.roomID + ')' + '</p>');
+                })
+            }
+        });
+    })
+</script>
+
 </html>
