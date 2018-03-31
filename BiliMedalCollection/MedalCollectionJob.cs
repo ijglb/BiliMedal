@@ -1,9 +1,7 @@
 ﻿using BiliMedalCollection.Models;
 using Pomelo.AspNetCore.TimedJob;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace BiliMedalCollection
 {
@@ -11,14 +9,22 @@ namespace BiliMedalCollection
     {
         const int StartRoom = 10000;
         const int EndRoom = 11111111;
+        static bool endCollectNew = false;
 
         [Invoke(Begin = "2018-03-31 00:00", Interval = 500, SkipWhileExecuting = true)]
         public void CollectNewRoom(DbEntitys dbEntitys)
         {
+            if (endCollectNew)
+                return;
             long room = StartRoom;
             var maxRoom = dbEntitys.Medals.OrderByDescending(m => m.RoomID).FirstOrDefault();
             if (maxRoom != null)
                 room = maxRoom.RoomID + 1;
+            if (room > EndRoom)
+            {
+                endCollectNew = true;
+                return;
+            }
             string medalName = Utils.BiliBili.GetRoomMedal(room);
 
             dbEntitys.Medals.Add(new Medal { RoomID = room, MedalName = medalName, LastSearchTime = DateTime.Now, LastUpdateTime = DateTime.Now });
