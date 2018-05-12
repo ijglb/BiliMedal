@@ -40,5 +40,12 @@ namespace BiliMedalCollection.Controllers
                 .OrderByDescending(m => m.LastUpdateTime).Take(10).ToList();
             return Json(list);
         }
+
+        [HttpGet, Route("/MaxRoom")]
+        public JsonResult GetMaxRoom()
+        {
+            var maxRoom = _DbEntitys.Medals.OrderByDescending(m => m.RoomID).FirstOrDefault();
+            return Json(maxRoom);
+        }
     }
 }
