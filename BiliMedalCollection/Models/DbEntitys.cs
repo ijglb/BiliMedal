@@ -16,6 +16,7 @@ namespace BiliMedalCollection.Models
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseSqlite("Data Source=/home/bilimedal/BiliMedal.db");
+            //optionsBuilder.UseSqlite("Data Source=./BiliMedal.db");
         }
     }
 }
