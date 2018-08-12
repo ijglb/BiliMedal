@@ -19,7 +19,7 @@ namespace BiliMedalCollection
         {
             services.AddMvc();
             services.AddDbContext<Models.DbEntitys>();
-            services.AddTimedJob();
+            //services.AddTimedJob();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -32,7 +32,8 @@ namespace BiliMedalCollection
             dbEntitys.Database.EnsureCreated();
             app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader().AllowCredentials());
             app.UseMvc();
-            app.UseTimedJob();
+            //app.UseTimedJob();
+            MedalCollectionTask.StartWork();
         }
     }
 }
