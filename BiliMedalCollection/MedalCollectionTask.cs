@@ -2,18 +2,32 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace BiliMedalCollection
 {
     public class MedalCollectionTask
     {
         const int StartRoom = 10000;
-        const int EndRoom = 11111111;
+        const int EndRoom = 15000000;
         static bool _EndCollectNew = false;
         static long _WithoutMedalRoom = 0;
 
         public static void StartWork()
         {
+            //进入WAL模式
+            using (DbEntitys dbEntitys = new DbEntitys())
+            using (var connection = dbEntitys.Database.GetDbConnection())
+            {
+                connection.Open();
+                using (var command = connection.CreateCommand())
+                {
+                    command.CommandText = "PRAGMA journal_mode=WAL;";
+                    string result = command.ExecuteScalar() as string;
+                    Console.WriteLine("切换journal_mode结果：" + result);
+                }
+            }
+
             Task.Factory.StartNew(CollectNewRoom);
             Task.Factory.StartNew(CheckOldRoom);
             Task.Factory.StartNew(CheckWithoutMedalRoom);
@@ -23,7 +37,7 @@ namespace BiliMedalCollection
         {
             while (true)
             {
-                System.Threading.Thread.Sleep(500);
+                System.Threading.Thread.Sleep(1000);
                 using (DbEntitys dbEntitys = new DbEntitys())
                 {
                     if (_EndCollectNew)
@@ -49,7 +63,7 @@ namespace BiliMedalCollection
         {
             while (true)
             {
-                System.Threading.Thread.Sleep(5000);
+                System.Threading.Thread.Sleep(4000);
                 using (DbEntitys dbEntitys = new DbEntitys())
                 {
                     var room = dbEntitys.Medals.Where(m => !string.IsNullOrEmpty(m.MedalName) && DateTime.Now - m.LastSearchTime > TimeSpan.FromDays(10)).OrderBy(m => m.RoomID).FirstOrDefault();
