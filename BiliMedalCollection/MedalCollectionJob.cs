@@ -8,12 +8,12 @@ namespace BiliMedalCollection
     public class MedalCollectionJob : Job
     {
         const int StartRoom = 10000;
-        const int EndRoom = 11111111;
+        const int EndRoom = 15000000;
         static bool _EndCollectNew = false;
         static long _WithoutMedalRoom = 0;
 
-        [Invoke(Begin = "2018-03-31 00:00", Interval = 500, SkipWhileExecuting = true)]
-        public void CollectNewRoom(DbEntitys dbEntitys)
+        [Invoke(Begin = "2018-03-31 00:00", Interval = 1000, SkipWhileExecuting = true)]
+        public void CollectNewRoom(DbEntitys dbEntitys, BiliBiliClient biliClient)
         {
             if (_EndCollectNew)
                 return;
@@ -26,20 +26,20 @@ namespace BiliMedalCollection
                 _EndCollectNew = true;
                 return;
             }
-            string medalName = Utils.BiliBili.GetRoomMedal(room);
+            string medalName = biliClient.GetRoomMedal(room).Result;
 
             dbEntitys.Medals.Add(new Medal { RoomID = room, MedalName = medalName, LastSearchTime = DateTime.Now, LastUpdateTime = DateTime.Now });
             dbEntitys.SaveChanges();
         }
 
-        [Invoke(Begin = "2018-03-31 00:00", Interval = 5000, SkipWhileExecuting = true)]
-        public void CheckOldRoom(DbEntitys dbEntitys)
+        [Invoke(Begin = "2018-03-31 00:00", Interval = 4000, SkipWhileExecuting = true)]
+        public void CheckOldRoom(DbEntitys dbEntitys, BiliBiliClient biliClient)
         {
             var room = dbEntitys.Medals.Where(m => !string.IsNullOrEmpty(m.MedalName) && DateTime.Now - m.LastSearchTime > TimeSpan.FromDays(10)).OrderBy(m => m.RoomID).FirstOrDefault();
             if (room != null)
             {
                 room.LastSearchTime = DateTime.Now;
-                string medalName = Utils.BiliBili.GetRoomMedal(room.RoomID);
+                string medalName = biliClient.GetRoomMedal(room.RoomID).Result;
                 if (!string.IsNullOrEmpty(medalName) && room.MedalName != medalName)
                 {
                     room.MedalName = medalName;
@@ -50,7 +50,7 @@ namespace BiliMedalCollection
         }
 
         [Invoke(Begin = "2018-03-31 00:00", Interval = 1000, SkipWhileExecuting = true)]
-        public void CheckWithoutMedalRoom(DbEntitys dbEntitys)
+        public void CheckWithoutMedalRoom(DbEntitys dbEntitys, BiliBiliClient biliClient)
         {
             if (_WithoutMedalRoom == 0)//重启后
             {
@@ -71,7 +71,7 @@ namespace BiliMedalCollection
 
             _WithoutMedalRoom = current.RoomID;
             current.LastSearchTime = DateTime.Now;
-            string medalName = Utils.BiliBili.GetRoomMedal(current.RoomID);
+            string medalName = biliClient.GetRoomMedal(current.RoomID).Result;
             if (!string.IsNullOrEmpty(medalName))
             {
                 current.MedalName = medalName;
